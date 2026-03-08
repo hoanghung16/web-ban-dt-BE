@@ -6,15 +6,19 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    public function index() { return response()->json(\App\Models\User::all()); }
+    public function index() { 
+        return response()->json(\App\Http\Resources\UserResource::collection(\App\Models\User::all())); 
+    }
     
     public function store(Request $request) {
         $validated = $request->validate(['fullname' => 'required|string', 'email' => 'required|email|unique:users', 'password' => 'required', 'role' => 'string']);
         $validated['password'] = \Illuminate\Support\Facades\Hash::make($validated['password']);
-        return response()->json(\App\Models\User::create($validated), 201);
+        return response()->json(new \App\Http\Resources\UserResource(\App\Models\User::create($validated)), 201);
     }
 
-    public function show($id) { return response()->json(\App\Models\User::findOrFail($id)); }
+    public function show($id) { 
+        return response()->json(new \App\Http\Resources\UserResource(\App\Models\User::findOrFail($id))); 
+    }
 
     public function update(Request $request, $id) {
         $user = \App\Models\User::findOrFail($id);
