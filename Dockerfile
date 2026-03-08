@@ -34,4 +34,4 @@ RUN php artisan config:clear
 
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+CMD ["sh", "-c", "php artisan migrate --force && apache2-foreground"]
