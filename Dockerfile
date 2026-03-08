@@ -1,8 +1,8 @@
 FROM php:7.4-apache
 
 # Cài extensions PHP cần thiết
-RUN apt-get update && apt-get install -y libpq-dev \
-    && docker-php-ext-install pdo pdo_mysql pdo_pgsql \
+RUN apt-get update && apt-get install -y libpq-dev git unzip libzip-dev \
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Bật mod_rewrite cho Laravel
