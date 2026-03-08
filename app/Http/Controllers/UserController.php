@@ -11,9 +11,23 @@ class UserController extends Controller
     }
     
     public function store(Request $request) {
-        $validated = $request->validate(['fullname' => 'required|string', 'email' => 'required|email|unique:users', 'password' => 'required', 'role' => 'string']);
-        $validated['password'] = \Illuminate\Support\Facades\Hash::make($validated['password']);
-        return response()->json(new \App\Http\Resources\UserResource(\App\Models\User::create($validated)), 201);
+        $validated = $request->validate([
+            'name' => 'required|string', 
+            'email' => 'required|email|unique:users', 
+            'password' => 'required', 
+            'role' => 'string'
+        ]);
+
+        try {
+            $validated['fullname'] = $validated['name']; // Gắn fullname bằng name
+            unset($validated['name']); // Gỡ name ra trước khi đẩy vào create()
+            $validated['password'] = \Illuminate\Support\Facades\Hash::make($validated['password']);
+            
+            $user = \App\Models\User::create($validated);
+            return response()->json(new \App\Http\Resources\UserResource($user), 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
     }
 
     public function show($id) { 
@@ -21,11 +35,23 @@ class UserController extends Controller
     }
 
     public function update(Request $request, $id) {
-        $user = \App\Models\User::findOrFail($id);
-        $data = $request->all();
-        if(isset($data['password'])) $data['password'] = \Illuminate\Support\Facades\Hash::make($data['password']);
-        $user->update($data);
-        return response()->json($user);
+        try {
+            $user = \App\Models\User::findOrFail($id);
+            $data = $request->all();
+            
+            if (isset($data['name'])) {
+                $data['fullname'] = $data['name'];
+                unset($data['name']);
+            }
+            if(isset($data['password'])) {
+                $data['password'] = \Illuminate\Support\Facades\Hash::make($data['password']);
+            }
+            
+            $user->update($data);
+            return response()->json(new \App\Http\Resources\UserResource($user));
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
     }
 
     public function destroy($id) {
