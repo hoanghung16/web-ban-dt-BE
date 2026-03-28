@@ -1,33 +1,44 @@
 <?php
-
 namespace App\Http\Controllers;
 
+use App\Models\OrderItem;
+use App\Models\Inventory;
+use App\Http\Requests\StoreOrderItemRequest;
+use App\Http\Resources\OrderItemResource;
 use Illuminate\Http\Request;
 
 class OrderItemController extends Controller
 {
-    public function index() { return response()->json(\App\Models\OrderItem::all()); }
-    
-    public function store(Request $request) {
-        $validated = $request->validate([
-            'orderid' => 'required|exists:orders,id',
-            'productid' => 'required|exists:products,id',
-            'quantity' => 'required|integer',
-            'unitprice' => 'required|numeric'
-        ]);
-        return response()->json(\App\Models\OrderItem::create($validated), 201);
+    public function index()
+    {
+        return OrderItemResource::collection(OrderItem::with('product')->get());
     }
 
-    public function show($id) { return response()->json(\App\Models\OrderItem::findOrFail($id)); }
+    public function store(StoreOrderItemRequest $request)
+    {
+        $validated = $request->validated();
+        $orderItem = OrderItem::create($validated);
 
-    public function update(Request $request, $id) {
-        $item = \App\Models\OrderItem::findOrFail($id);
-        $item->update($request->all());
-        return response()->json($item);
+        $inventory = Inventory::where('ProductId', $validated['productid'])->first();
+        if ($inventory) {
+            $inventory->QuantityInStock -= $validated['quantity'];
+            $inventory->save();
+        }
+
+        return response()->json(new OrderItemResource($orderItem->load('product')), 201);
     }
 
-    public function destroy($id) {
-        \App\Models\OrderItem::findOrFail($id)->delete();
-        return response()->json(['message' => 'Deleted']);
+    public function destroy($id)
+    {
+        $orderItem = OrderItem::findOrFail($id);
+        
+        $inventory = Inventory::where('ProductId', $orderItem->productid)->first();
+        if ($inventory) {
+            $inventory->QuantityInStock += $orderItem->quantity;
+            $inventory->save();
+        }
+
+        $orderItem->delete();
+        return response()->json(['message' => 'Đã xóa sản phẩm khỏi đơn hàng và hoàn lại tồn kho']);
     }
 }
