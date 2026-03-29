@@ -7,14 +7,11 @@ class UpdateUserRequest extends FormRequest
     public function authorize() { return true; }
     
     public function rules()
-    {
-        $userId = $this->route('id') ?? $this->route('user');
-
-        return [
-            'fullname' => 'string|max:255',
-            'email' => 'string|email|max:255|unique:users,email,' . $userId,
-            'password' => 'nullable|string|min:8', 
-            'role' => 'nullable|string|max:50',
-        ];
-    }
+{
+    return [
+        'fullname' => 'sometimes|string|max:255',
+        'email' => 'sometimes|email|unique:users,email,' . $this->user->id,
+        'password' => 'sometimes|string|min:6|confirmed',
+    ];
+}
 }
