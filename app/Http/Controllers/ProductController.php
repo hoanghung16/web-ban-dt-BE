@@ -1,90 +1,71 @@
 <?php
-
 namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
 use App\Models\Product;
-use App\Models\Category;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
+use App\Http\Resources\ProductResource;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    // Cho trang bán hàng frontend (format đẹp)
-    public function getProducts()
+    // Frontend listing (public)
+    public function getProducts(Request $request)
     {
-        $products = Product::all();
-        $formattedProducts = $products->map(function ($product) {
-            return [
-                'id' => $product->id,
-                'name' => $product->name,
-                'price' => number_format($product->price, 0, ',', '.') . 'đ',
-                'tag' => cloneTagFromMock($product->name), 
-                'color' => 'Mặc định',
-                'flash_sale' => $product->IsOnSale == 1,
-                'image' => $product->imageUrl,
-                'categoryid' => $product->categoryid,
-            ];
-        });
-        return response()->json($formattedProducts);
+        $query = Product::query()->with('category', 'inventory');
+        
+        // Filter by category
+        if ($request->has('categoryid')) {
+            $query->byCategory($request->categoryid);
+        }
+        
+        // Search by name
+        if ($request->has('search')) {
+            $query->search($request->search);
+        }
+        
+        // Publish filter
+        if ($request->has('published')) {
+            $query->published();
+        }
+        
+        // Pagination
+        $perPage = min($request->get('per_page', 12), 100);
+        $products = $query->paginate($perPage);
+        
+        return ProductResource::collection($products);
     }
-
-    // Cho trang Admin (dữ liệu gốc đầy đủ)
-    public function index()
+    
+    // Admin panel (raw data)
+    public function index(Request $request)
     {
-        return response()->json(Product::all());
+        $perPage = min($request->get('per_page', 50), 100);
+        return ProductResource::collection(
+            Product::with('category')->paginate($perPage)
+        );
     }
-
-    public function getCategories()
+    
+    public function store(StoreProductRequest $request)
     {
-        return response()->json(Category::all());
+        $product = Product::create($request->validated());
+        return response()->json(new ProductResource($product->load('category', 'inventory')), 201);
     }
-
-    // --- CRUD ADMIN ---
-    public function store(Request $request)
+    
+    public function show($id)
     {
-        $validated = $request->validate([
-            'categoryid' => 'required|exists:categories,id',
-            'name' => 'required|string|max:255',
-            'price' => 'required|numeric',
-            'saleprice' => 'nullable|numeric',
-            'IsOnSale' => 'boolean',
-            'IsPublished' => 'boolean',
-            'imageUrl' => 'nullable|string'
-        ]);
-
-        $product = Product::create($validated);
-        return response()->json($product, 201);
+        $product = Product::with('category', 'inventory', 'orderItems')->findOrFail($id);
+        return new ProductResource($product);
     }
-
-    public function update(Request $request, $id)
+    
+    public function update(UpdateProductRequest $request, $id)
     {
         $product = Product::findOrFail($id);
-        $validated = $request->validate([
-            'categoryid' => 'exists:categories,id',
-            'name' => 'string|max:255',
-            'price' => 'numeric',
-            'saleprice' => 'nullable|numeric',
-            'IsOnSale' => 'boolean',
-            'IsPublished' => 'boolean',
-            'imageUrl' => 'nullable|string'
-        ]);
-
-        $product->update($validated);
-        return response()->json($product);
+        $product->update($request->validated());
+        return new ProductResource($product->load('category', 'inventory'));
     }
-
+    
     public function destroy($id)
     {
-        $product = Product::findOrFail($id);
-        $product->delete();
-        return response()->json(['message' => 'Xóa sản phẩm thành công']);
+        Product::findOrFail($id)->delete();
+        return response()->json(['message' => 'Sản phẩm đã xóa']);
     }
-}
-
-function cloneTagFromMock($name) {
-    if (strpos($name, 'iPhone 15') !== false) return 'Bán chạy';
-    if (strpos($name, 'Xiaomi 14') !== false) return 'Leica';
-    if (strpos($name, 'Poco') !== false) return 'Gaming';
-    if (strpos($name, 'Redmi') !== false) return 'Giá Rẻ';
-    if (strpos($name, '20W') !== false) return 'HOT';
-    return '';
 }

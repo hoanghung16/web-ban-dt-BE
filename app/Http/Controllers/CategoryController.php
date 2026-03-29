@@ -1,28 +1,40 @@
 <?php
-
 namespace App\Http\Controllers;
 
+use App\Models\Category;
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Resources\CategoryResource;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    public function index() { return response()->json(\App\Models\Category::all()); }
-    
-    public function store(Request $request) {
-        $validated = $request->validate(['name' => 'required|string', 'slug' => 'required|string']);
-        return response()->json(\App\Models\Category::create($validated), 201);
+    public function index()
+    {
+        return CategoryResource::collection(Category::all());
     }
 
-    public function show($id) { return response()->json(\App\Models\Category::findOrFail($id)); }
-
-    public function update(Request $request, $id) {
-        $cat = \App\Models\Category::findOrFail($id);
-        $cat->update($request->all());
-        return response()->json($cat);
+    public function store(StoreCategoryRequest $request)
+    {
+        $category = Category::create($request->validated());
+        return response()->json(new CategoryResource($category), 201);
     }
 
-    public function destroy($id) {
-        \App\Models\Category::findOrFail($id)->delete();
-        return response()->json(['message' => 'Deleted']);
+    public function show($id)
+    {
+        $category = Category::findOrFail($id);
+        return new CategoryResource($category);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $category = Category::findOrFail($id);
+        $category->update($request->only(['name', 'slug']));
+        return new CategoryResource($category);
+    }
+
+    public function destroy($id)
+    {
+        Category::findOrFail($id)->delete();
+        return response()->json(['message' => 'Danh mục đã xóa thành công']);
     }
 }
