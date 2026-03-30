@@ -1,9 +1,11 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Inventory;
 use App\Http\Resources\InventoryResource;
 use Illuminate\Http\Request;
+use App\Http\Requests\UpdateInventoryRequest;
 
 class InventoryController extends Controller
 {
@@ -18,13 +20,9 @@ class InventoryController extends Controller
         return new InventoryResource($inventory);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateInventoryRequest $request, Inventory $inventory)
     {
-        $request->validate(['QuantityInStock' => 'required|integer|min:0']);
-        
-        $inventory = Inventory::where('ProductId', $id)->firstOrFail();
-        $inventory->update(['QuantityInStock' => $request->QuantityInStock]);
-        
+        $inventory->update($request->validated());
         return new InventoryResource($inventory);
     }
 }
