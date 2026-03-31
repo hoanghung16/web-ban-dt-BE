@@ -44,21 +44,34 @@ class OrderController extends Controller
     }
     
     public function show($id)
-    {
-        $order = Order::with('user', 'items.product')->findOrFail($id);
-        return new OrderResource($order);
-    }
+{
+    $order = Order::findOrFail($id);
+    
+    // Check xem user có quyền view order này không
+    $this->authorize('view', $order);
+    
+    return new OrderResource($order->load('user', 'items.product'));
+}
     
     public function update(UpdateOrderRequest $request, $id)
-    {
-        $order = Order::findOrFail($id);
-        $order->update($request->validated());
-        return new OrderResource($order->load('user', 'items.product'));
-    }
+{
+    $order = Order::findOrFail($id);
+    
+    // Check xem user có quyền update không
+    $this->authorize('update', $order);
+    
+    $order->update($request->validated());
+    return new OrderResource($order->load('user', 'items.product'));
+}
     
     public function destroy($id)
-    {
-        Order::findOrFail($id)->delete();
-        return response()->json(['message' => 'Đơn hàng đã xóa']);
-    }
+{
+    $order = Order::findOrFail($id);
+    
+    // Check xem user có quyền delete không
+    $this->authorize('delete', $order);
+    
+    $order->delete();
+    return response()->json(['message' => 'Đơn hàng đã xóa']);
+}
 }
