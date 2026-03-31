@@ -46,8 +46,9 @@ class ProductController extends Controller
     
     public function store(StoreProductRequest $request)
     {
+        // Không cần check explicit vì route đã có middleware
         $product = Product::create($request->validated());
-        return response()->json(new ProductResource($product->load('category', 'inventory')), 201);
+        return (new ProductResource($product->load('category', 'inventory')))->response()->setStatusCode(201);
     }
     
     public function show($id)
@@ -56,16 +57,21 @@ class ProductController extends Controller
         return new ProductResource($product);
     }
     
-    public function update(UpdateProductRequest $request, $id)
+   public function update(UpdateProductRequest $request, $id)
     {
         $product = Product::findOrFail($id);
+        $this->authorize('update', $product); // Optional (route middleware already checks)
+        
         $product->update($request->validated());
         return new ProductResource($product->load('category', 'inventory'));
     }
     
     public function destroy($id)
     {
-        Product::findOrFail($id)->delete();
+        $product = Product::findOrFail($id);
+        $this->authorize('delete', $product);
+        
+        $product->delete();
         return response()->json(['message' => 'Sản phẩm đã xóa']);
     }
 }
