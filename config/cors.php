@@ -19,7 +19,11 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => [
+        'http://localhost:5173',
+        'http://localhost:3000',
+        'https://web-ban-dt-fe.onrender.com',
+    ],
 
     'allowed_origins_patterns' => [],
 
