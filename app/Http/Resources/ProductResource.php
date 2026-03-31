@@ -12,7 +12,7 @@ class ProductResource extends JsonResource
             'categoryid' => $this->categoryid,
             'category' => new CategoryResource($this->whenLoaded('category')),
             'price' => (float) $this->price,
-            'saleprice' => (float) $this->saleprice,
+            'saleprice' => $this->saleprice ? (float) $this->saleprice : null,
             'IsOnSale' => (bool) $this->IsOnSale,
             'IsPublished' => (bool) $this->IsPublished,
             'imageUrl' => $this->imageUrl,
