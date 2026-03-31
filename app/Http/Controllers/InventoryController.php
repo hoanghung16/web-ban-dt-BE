@@ -3,26 +3,35 @@
 namespace App\Http\Controllers;
 
 use App\Models\Inventory;
+use App\Services\InventoryService;
 use App\Http\Resources\InventoryResource;
 use Illuminate\Http\Request;
 use App\Http\Requests\UpdateInventoryRequest;
 
 class InventoryController extends Controller
 {
+    protected InventoryService $inventoryService;
+
+    public function __construct(InventoryService $inventoryService)
+    {
+        $this->inventoryService = $inventoryService;
+    }
+
     public function index()
     {
-        return InventoryResource::collection(Inventory::with('product')->get());
+        $inventory = $this->inventoryService->getAll();
+        return InventoryResource::collection($inventory);
     }
 
     public function show($id)
     {
-        $inventory = Inventory::where('ProductId', $id)->firstOrFail();
-        return new InventoryResource($inventory);
+        $inventory = $this->inventoryService->getByProductId($id);
+        return response()->json(['data' => new InventoryResource($inventory)]);
     }
 
-    public function update(UpdateInventoryRequest $request, Inventory $inventory)
+    public function update(UpdateInventoryRequest $request, $id)
     {
-        $inventory->update($request->validated());
-        return new InventoryResource($inventory);
+        $inventory = $this->inventoryService->update($id, $request->validated());
+        return response()->json(['data' => new InventoryResource($inventory)]);
     }
 }

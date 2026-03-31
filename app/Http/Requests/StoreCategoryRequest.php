@@ -1,16 +1,24 @@
 <?php
 namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
+use App\Traits\ValidatesCategoryTrait;
 
 class StoreCategoryRequest extends FormRequest
 {
-    public function authorize() { return true; }
+    use ValidatesCategoryTrait;
+
+    public function authorize()
+    {
+        return true;
+    }
     
     public function rules()
     {
-        return [
-            'name' => 'required|string|max:255|unique:categories,name',
-            'slug' => 'required|string|max:255|unique:categories,slug',
-        ];
+        return $this->getCategoryRules();
+    }
+    
+    public function messages()
+    {
+        return $this->getCategoryMessages();
     }
 }

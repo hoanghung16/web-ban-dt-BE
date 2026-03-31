@@ -5,19 +5,17 @@ use Illuminate\Foundation\Http\FormRequest;
 class UpdateProductRequest extends FormRequest
 {
     public function authorize() { return true; }
-    
+
     public function rules()
     {
-        $productId = $this->route('id') ?? $this->route('product');
-        
+        $id = $this->route("product") ?? "null";
         return [
-            'categoryid' => 'exists:categories,id',
-            'name' => 'string|max:255|unique:products,name,' . $productId,
-            'price' => 'numeric|min:0',
-            'saleprice' => 'nullable|numeric|min:0|lt:price',
-            'IsOnSale' => 'boolean',
-            'IsPublished' => 'boolean',
-            'imageUrl' => 'nullable|string|max:500',
+            "name" => "sometimes|string|max:255|unique:products,name," . $id,
+            "price" => "sometimes|numeric|min:0",
+            "saleprice" => "nullable|numeric|min:0",
+            "description" => "nullable|string|max:1000",
+            "imageUrl" => "nullable|string",
+            "categoryid" => "sometimes|exists:categories,id",
         ];
     }
 }

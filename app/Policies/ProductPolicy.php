@@ -11,17 +11,17 @@ class ProductPolicy
      */
     public function create(User $user)
     {
-        return $user->role === 'Admin';
+        return strtolower($user->role) === 'admin';
     }
 
     public function update(User $user, Product $product)
     {
-        return $user->role === 'Admin';
+        return strtolower($user->role) === 'admin';
     }
 
     public function delete(User $user, Product $product)
     {
-        return $user->role === 'Admin';
+        return strtolower($user->role) === 'admin';
     }
 
     /**
@@ -29,6 +29,6 @@ class ProductPolicy
      */
     public function view(?User $user, Product $product)
     {
-        return $product->IsPublished || ($user && $user->role === 'Admin');
+        return $product->IsPublished || ($user && strtolower($user->role) === 'admin');
     }
 }

@@ -4,59 +4,49 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Services\UserService;
+use App\Enums\UserRole;
+use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function index()
+    protected UserService $userService;
+
+    public function __construct(UserService $userService)
     {
-        return response()->json(\App\Http\Resources\UserResource::collection(\App\Models\User::all()));
+        $this->userService = $userService;
     }
 
-    public function store(Request $request)
+    public function index()
     {
-        $validated = $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|email|unique:users',
-            'password' => 'required',
-            'role' => 'string'
-        ]);
+        $users = $this->userService->getAllUsers();
+        return UserResource::collection($users);
+    }
 
-        try {
-            $validated['fullname'] = $validated['name']; // Gắn fullname bằng name
-            unset($validated['name']); // Gỡ name ra trước khi đẩy vào create()
-            $validated['password'] = \Illuminate\Support\Facades\Hash::make($validated['password']);
-
-            $user = \App\Models\User::create($validated);
-            return response()->json(new \App\Http\Resources\UserResource($user), 201);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 400);
-        }
+    public function store(StoreUserRequest $request)
+    {
+        $user = $this->userService->create($request->validated());
+        return response()->json(['data' => new UserResource($user)], 201);
     }
 
     public function show($id)
     {
-        return response()->json(new \App\Http\Resources\UserResource(\App\Models\User::findOrFail($id)));
+        $user = $this->userService->getById($id);
+        return response()->json(['data' => new UserResource($user)]);
     }
 
-    public function update(UpdateUserRequest $request, User $user)
+    public function update(UpdateUserRequest $request, $id)
     {
-        $data = $request->validated();
-
-        // Hash password nếu có
-        if (isset($data['password'])) {
-            $data['password'] = Hash::make($data['password']);
-        }
-
-        $user->update($data);
-        return new UserResource($user);
+        $user = $this->userService->update($id, $request->validated());
+        return response()->json(['data' => new UserResource($user)]);
     }
 
     public function destroy($id)
     {
-        \App\Models\User::findOrFail($id)->delete();
+        $this->userService->delete($id);
         return response()->json(['message' => 'Deleted']);
     }
 }

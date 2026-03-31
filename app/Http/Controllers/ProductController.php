@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 use App\Models\Product;
+use App\Services\ProductService;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
@@ -8,70 +9,64 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    protected ProductService $productService;
+
+    public function __construct(ProductService $productService)
+    {
+        $this->productService = $productService;
+    }
+
     // Frontend listing (public)
     public function getProducts(Request $request)
     {
-        $query = Product::query()->with('category', 'inventory');
-        
-        // Filter by category
-        if ($request->has('categoryid')) {
-            $query->byCategory($request->categoryid);
-        }
-        
-        // Search by name
-        if ($request->has('search')) {
-            $query->search($request->search);
-        }
-        
-        // Publish filter
-        if ($request->has('published')) {
-            $query->published();
-        }
-        
-        // Pagination
+        $categoryId = $request->get('categoryid');
+        $search = $request->get('search');
         $perPage = min($request->get('per_page', 12), 100);
-        $products = $query->paginate($perPage);
+        $page = $request->get('page', 1);
+
+        if ($categoryId) {
+            $products = $this->productService->getByCategory($categoryId);
+        } elseif ($search) {
+            $products = $this->productService->search($search);
+        } else {
+            $products = $this->productService->getAllProducts($page, $perPage);
+        }
         
         return ProductResource::collection($products);
     }
     
-    // Admin panel (raw data)
     public function index(Request $request)
     {
         $perPage = min($request->get('per_page', 50), 100);
-        return ProductResource::collection(
-            Product::with('category')->paginate($perPage)
-        );
+        $page = $request->get('page', 1);
+        $products = $this->productService->getAllProducts($page, $perPage);
+        return ProductResource::collection($products);
     }
     
     public function store(StoreProductRequest $request)
     {
-        // Không cần check explicit vì route đã có middleware
-        $product = Product::create($request->validated());
-        return (new ProductResource($product->load('category', 'inventory')))->response()->setStatusCode(201);
+        $product = $this->productService->create($request->validated());
+        return (new ProductResource($product))->response()->setStatusCode(201);
     }
     
     public function show($id)
     {
-        $product = Product::with('category', 'inventory', 'orderItems')->findOrFail($id);
-        return new ProductResource($product);
+        $product = $this->productService->getById($id);
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+        return response()->json(new ProductResource($product));
     }
     
    public function update(UpdateProductRequest $request, $id)
     {
-        $product = Product::findOrFail($id);
-        $this->authorize('update', $product); // Optional (route middleware already checks)
-        
-        $product->update($request->validated());
-        return new ProductResource($product->load('category', 'inventory'));
+        $product = $this->productService->update($id, $request->validated());
+        return response()->json(new ProductResource($product));
     }
     
     public function destroy($id)
     {
-        $product = Product::findOrFail($id);
-        $this->authorize('delete', $product);
-        
-        $product->delete();
+        $this->productService->delete($id);
         return response()->json(['message' => 'Sản phẩm đã xóa']);
     }
 }

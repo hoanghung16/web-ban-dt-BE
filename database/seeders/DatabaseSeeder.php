@@ -33,31 +33,38 @@ class DatabaseSeeder extends Seeder
                 'fullname' => 'Customer',      
                 'email' => 'customer@gmail.com',
                 'password' => Hash::make('password'), 
-                'role' => 'user',
+                'role' => 'customer',
                 'created_at' => now(),
             ]
         ]);
 
-        // 3. Seed Categories (Theo file nhiệm vụ)
+        // 3. Seed Categories (5 danh mục - Apple theme)
         $categories = [
             ['id' => 1, 'name' => 'iPhone', 'slug' => 'iphone'],
-            ['id' => 2, 'name' => 'Samsung', 'slug' => 'samsung'],
-            ['id' => 3, 'name' => 'Phụ kiện', 'slug' => 'phu-kien'],
-            ['id' => 4, 'name' => 'Xiaomi', 'slug' => 'xiaomi'],
+            ['id' => 2, 'name' => 'MacBook', 'slug' => 'macbook'],
+            ['id' => 3, 'name' => 'iPad', 'slug' => 'ipad'],
+            ['id' => 4, 'name' => 'Watch', 'slug' => 'watch'],
+            ['id' => 5, 'name' => 'AirPods', 'slug' => 'airpods'],
         ];
         foreach ($categories as $cat) {
             DB::table('categories')->insert(array_merge($cat, ['created_at' => now(), 'updated_at' => now()]));
         }
 
-        // 4. Seed Products
+        // 4. Seed Products (8 sản phẩm - Apple theme)
         $products = [
-            ['id' => 1, 'categoryid' => 1, 'name' => 'iPhone 15 Pro Max', 'price' => 34990000, 'saleprice' => 31990000, 'IsOnSale' => 1, 'imageUrl' => 'iphone15pro.webp'],
-            ['id' => 2, 'categoryid' => 1, 'name' => 'iPhone 14 Plus', 'price' => 22990000, 'saleprice' => null, 'IsOnSale' => 0, 'imageUrl' => 'iphone14plus.webp'],
-            ['id' => 3, 'categoryid' => 2, 'name' => 'Samsung Galaxy S24 Ultra', 'price' => 33990000, 'saleprice' => 29990000, 'IsOnSale' => 1, 'imageUrl' => 's24.webp'],
-            ['id' => 4, 'categoryid' => 4, 'name' => 'POCO M5 Edition', 'price' => 3990000, 'saleprice' => 3490000, 'IsOnSale' => 1, 'imageUrl' => 'poco-m5.webp'],
-            ['id' => 5, 'categoryid' => 4, 'name' => 'Xiaomi 14 Ultra', 'price' => 32000000, 'saleprice' => null, 'IsOnSale' => 0, 'imageUrl' => 'xiaomi-14-ultra.webp'],
-            ['id' => 6, 'categoryid' => 3, 'name' => 'Sạc dự phòng 20.000mAh', 'price' => 850000, 'saleprice' => 690000, 'IsOnSale' => 1, 'imageUrl' => 'sac-du-phong.webp'],
-            ['id' => 7, 'categoryid' => 3, 'name' => 'Tai nghe Bluetooth True Wireless', 'price' => 1200000, 'saleprice' => null, 'IsOnSale' => 0, 'imageUrl' => 'tai-nghe.webp'],
+            // iPhone (3 products)
+            ['id' => 1, 'categoryid' => 1, 'name' => 'iPhone 15 Pro Max', 'price' => 29990000, 'saleprice' => 27990000, 'IsOnSale' => 1, 'imageUrl' => '/images/products/iphone15pro.webp'],
+            ['id' => 2, 'categoryid' => 1, 'name' => 'iPhone 14 Plus', 'price' => 24990000, 'saleprice' => null, 'IsOnSale' => 0, 'imageUrl' => '/images/products/iphone14plus.webp'],
+            ['id' => 3, 'categoryid' => 1, 'name' => 'Poco M5', 'price' => 19990000, 'saleprice' => 17990000, 'IsOnSale' => 1, 'imageUrl' => '/images/products/poco-m5.webp'],
+            // MacBook (2 products)
+            ['id' => 4, 'categoryid' => 2, 'name' => 'Samsung Galaxy S24', 'price' => 34990000, 'saleprice' => null, 'IsOnSale' => 0, 'imageUrl' => '/images/products/s24.webp'],
+            ['id' => 5, 'categoryid' => 2, 'name' => 'Xiaomi 14 Ultra', 'price' => 49990000, 'saleprice' => 45990000, 'IsOnSale' => 1, 'imageUrl' => '/images/products/xiaomi-14-ultra.webp'],
+            // iPad
+            ['id' => 6, 'categoryid' => 3, 'name' => 'Sạc dự phòng', 'price' => 1999000, 'saleprice' => null, 'IsOnSale' => 0, 'imageUrl' => '/images/products/sac-du-phong.webp'],
+            // Watch
+            ['id' => 7, 'categoryid' => 4, 'name' => 'Tai nghe không dây', 'price' => 999000, 'saleprice' => 890000, 'IsOnSale' => 1, 'imageUrl' => '/images/products/tai-nghe.webp'],
+            // AirPods
+            ['id' => 8, 'categoryid' => 5, 'name' => 'AirPods Pro 2', 'price' => 6490000, 'saleprice' => null, 'IsOnSale' => 0, 'imageUrl' => '/images/products/tai-nghe.webp'],
         ];
         foreach ($products as $prod) {
             DB::table('products')->insert(array_merge($prod, ['created_at' => now(), 'updated_at' => now()]));

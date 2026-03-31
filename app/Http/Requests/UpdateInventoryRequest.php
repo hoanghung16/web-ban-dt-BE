@@ -3,27 +3,24 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Traits\ValidatesInventoryTrait;
 
 class UpdateInventoryRequest extends FormRequest
 {
+    use ValidatesInventoryTrait;
+
     public function authorize()
     {
-        return true; // TV03 sẽ check admin role
+        return true;
     }
 
     public function rules()
     {
-        return [
-            'QuantityInStock' => 'required|integer|min:0|max:999999',
-        ];
+        return $this->getInventoryRules();
     }
-
+    
     public function messages()
     {
-        return [
-            'QuantityInStock.required' => 'Số lượng tồn kho là bắt buộc',
-            'QuantityInStock.integer' => 'Số lượng phải là số nguyên',
-            'QuantityInStock.min' => 'Số lượng không thể âm',
-        ];
+        return $this->getInventoryMessages();
     }
 }

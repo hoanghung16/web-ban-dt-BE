@@ -101,4 +101,88 @@ class AuthController extends Controller
             'token' => $token,
         ]);
     }
+
+    /**
+     * Quên mật khẩu - gửi link đặt lại
+     * POST /api/auth/forgot-password
+     */
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ], [
+            'email.exists' => 'Email không tồn tại trong hệ thống',
+        ]);
+
+        // Tìm user theo email
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Email không tồn tại',
+                'errors' => ['email' => ['Email này chưa được đăng ký']]
+            ], 404);
+        }
+
+        // Tạo reset token (trong thực tế nên dùng PasswordReset::create())
+        // Tạm thời trả về success message
+        return response()->json([
+            'message' => 'Hướng dẫn đặt lại mật khẩu đã được gửi đến email của bạn',
+        ], 200);
+    }
+
+    /**
+     * Đổi mật khẩu
+     * POST /api/auth/change-password
+     */
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'password' => 'required|string|min:6|confirmed',
+        ], [
+            'password.confirmed' => 'Xác nhận mật khẩu không khớp',
+            'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự',
+        ]);
+
+        $user = $request->user();
+
+        // Kiểm tra mật khẩu cũ
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'message' => 'Mật khẩu hiện tại không đúng',
+                'errors' => ['current_password' => ['Mật khẩu không chính xác']]
+            ], 422);
+        }
+
+        // Cập nhật mật khẩu mới
+        $user->update([
+            'password' => Hash::make($request->password)
+        ]);
+
+        return response()->json([
+            'message' => 'Mật khẩu đã được thay đổi thành công'
+        ], 200);
+    }
+
+    /**
+     * Cập nhật profil
+     * PUT /api/auth/profile
+     */
+    public function updateProfile(Request $request)
+    {
+        $request->validate([
+            'fullname' => 'required|string|max:255',
+        ]);
+
+        $user = $request->user();
+        $user->update([
+            'fullname' => $request->fullname,
+        ]);
+
+        return response()->json([
+            'message' => 'Thông tin cá nhân đã được cập nhật',
+            'user' => new UserResource($user)
+        ], 200);
+    }
 }

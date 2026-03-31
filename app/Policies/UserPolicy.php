@@ -10,26 +10,26 @@ class UserPolicy
      */
     public function viewAny(User $user)
     {
-        return $user->role === 'Admin';
+        return strtolower($user->role) === 'admin';
     }
 
     public function view(User $user, User $model)
     {
-        return $user->id === $model->id || $user->role === 'Admin';
+        return $user->id === $model->id || strtolower($user->role) === 'admin';
     }
 
     public function create(User $user)
     {
-        return $user->role === 'Admin';
+        return strtolower($user->role) === 'admin';
     }
 
     public function update(User $user, User $model)
     {
-        return $user->id === $model->id || $user->role === 'Admin';
+        return $user->id === $model->id || strtolower($user->role) === 'admin';
     }
 
     public function delete(User $user, User $model)
     {
-        return $user->role === 'Admin';
+        return strtolower($user->role) === 'admin';
     }
 }

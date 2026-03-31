@@ -1,18 +1,24 @@
 <?php
 namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
+use App\Traits\ValidatesUserTrait;
 
 class StoreUserRequest extends FormRequest
 {
-    public function authorize() { return true; }
+    use ValidatesUserTrait;
+
+    public function authorize()
+    {
+        return true;
+    }
     
     public function rules()
     {
-        return [
-            'fullname' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8', 
-            'role' => 'nullable|string|max:50',
-        ];
+        return $this->getUserRules();
+    }
+    
+    public function messages()
+    {
+        return $this->getUserMessages();
     }
 }

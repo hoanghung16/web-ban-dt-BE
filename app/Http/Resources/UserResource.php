@@ -16,7 +16,7 @@ class UserResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->fullname, // Ánh xạ fullname thành name cho Frontend
+            'fullname' => $this->fullname,
             'email' => $this->email,
             'role' => $this->role,
             'created_at' => $this->created_at,

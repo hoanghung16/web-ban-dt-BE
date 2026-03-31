@@ -8,7 +8,7 @@ class AdminOnly
 {
     public function handle(Request $request, Closure $next)
     {
-        if ($request->user() && $request->user()->role !== 'Admin') {
+        if ($request->user() && strtolower($request->user()->role) !== 'admin') {
             return response()->json([
                 'message' => 'Bạn không có quyền truy cập tài nguyên này',
                 'error' => 'Unauthorized'
