@@ -137,12 +137,15 @@ class AuthController extends Controller
      */
     public function changePassword(Request $request)
     {
-        $request->validate([
+        // Validate request
+        $validated = $request->validate([
             'current_password' => 'required|string',
             'password' => 'required|string|min:6|confirmed',
         ], [
             'password.confirmed' => 'Xác nhận mật khẩu không khớp',
             'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự',
+            'current_password.required' => 'Mật khẩu hiện tại là bắt buộc',
+            'password.required' => 'Mật khẩu mới là bắt buộc',
         ]);
 
         $user = $request->user();

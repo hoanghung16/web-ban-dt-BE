@@ -20,9 +20,12 @@ class UserController extends Controller
         $this->userService = $userService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $users = $this->userService->getAllUsers();
+        // Support both 'limit' and 'per_page' parameters
+        $perPage = min($request->get('limit') ?? $request->get('per_page', 100), 100);
+        $page = $request->get('page', 1);
+        $users = $this->userService->getAllUsers($perPage);
         return UserResource::collection($users);
     }
 

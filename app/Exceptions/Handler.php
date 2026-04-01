@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use Illuminate\Validation\ValidationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 
@@ -36,6 +37,16 @@ class Handler extends ExceptionHandler
     {
         $this->reportable(function (Throwable $e) {
             //
+        });
+
+        // Custom JSON response for validation exceptions
+        $this->renderable(function (ValidationException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Dữ liệu không hợp lệ',
+                    'errors' => $e->errors(),
+                ], $e->status);
+            }
         });
     }
 }

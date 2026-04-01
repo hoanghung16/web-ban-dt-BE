@@ -27,6 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('admin')->group(function() {
         // Product CRUD (except index and show, which are public)
         Route::apiResource('products', ProductController::class)->except(['show', 'index']);
+        Route::post('products/upload-image', [ProductController::class, 'uploadImage']);
         
         // Category CRUD (except index and show)
         Route::apiResource('categories', CategoryController::class)->except(['show', 'index']);

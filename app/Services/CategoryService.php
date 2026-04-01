@@ -61,8 +61,9 @@ class CategoryService
         $category = Category::findOrFail($id);
         
         // Check if category has products
-        if ($category->products()->count() > 0) {
-            throw new \Exception('Không thể xóa danh mục này vì đang có sản phẩm. Vui lòng xóa hoặc chuyển các sản phẩm trước.');
+        $productCount = $category->products()->count();
+        if ($productCount > 0) {
+            throw new \Exception("Không thể xóa danh mục '{$category->name}' vì đang có {$productCount} sản phẩm. Vui lòng xóa hoặc chuyển các sản phẩm trước.");
         }
         
         return $category->delete();

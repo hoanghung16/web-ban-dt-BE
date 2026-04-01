@@ -21,7 +21,8 @@ class ProductController extends Controller
     {
         $categoryId = $request->get('categoryid');
         $search = $request->get('search');
-        $perPage = min($request->get('per_page', 12), 100);
+        // Support both 'limit' and 'per_page' parameters
+        $perPage = min($request->get('limit') ?? $request->get('per_page', 12), 100);
         $page = $request->get('page', 1);
 
         if ($categoryId) {
@@ -68,5 +69,42 @@ class ProductController extends Controller
     {
         $this->productService->delete($id);
         return response()->json(['message' => 'Sản phẩm đã xóa']);
+    }
+
+    /**
+     * Upload hình ảnh sản phẩm
+     * POST /api/products/upload-image
+     */
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120' // 5MB max
+        ], [
+            'image.required' => 'Vui lòng chọn hình ảnh',
+            'image.image' => 'Tệp phải là hình ảnh',
+            'image.mimes' => 'Chỉ chấp nhận: jpeg, png, jpg, gif, webp',
+            'image.max' => 'Kích thước tối đa: 5MB'
+        ]);
+
+        try {
+            $file = $request->file('image');
+            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            
+            // Lưu vào public/images/products
+            $file->move(public_path('images/products'), $filename);
+
+            // Trả về đường dẫn tương đối để lưu vào database
+            $imagePath = '/images/products/' . $filename;
+
+            return response()->json([
+                'message' => 'Upload thành công',
+                'imageUrl' => $imagePath,
+                'fullUrl' => url($imagePath)
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Lỗi upload: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

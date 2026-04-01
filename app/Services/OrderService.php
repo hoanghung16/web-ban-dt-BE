@@ -10,36 +10,36 @@ class OrderService
     /**
      * Get all orders with pagination
      */
-    public function getAllOrders($perPage = 20): LengthAwarePaginator
+    public function getAllOrders($page = 1, $perPage = 20): LengthAwarePaginator
     {
         return Order::query()
             ->with(['user', 'items.product'])
             ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+            ->paginate($perPage, ['*'], 'page', $page);
     }
 
     /**
      * Get orders by user
      */
-    public function getByUserId(int $userId, $perPage = 20): LengthAwarePaginator
+    public function getByUserId(int $userId, $page = 1, $perPage = 20): LengthAwarePaginator
     {
         return Order::query()
             ->where('userid', $userId)
             ->with(['user', 'items.product'])
             ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+            ->paginate($perPage, ['*'], 'page', $page);
     }
 
     /**
      * Get orders by status
      */
-    public function getByStatus(string $status, $perPage = 20): LengthAwarePaginator       
+    public function getByStatus(string $status, $page = 1, $perPage = 20): LengthAwarePaginator       
     {
         return Order::query()
             ->where('status', $status)
             ->with(['user', 'items.product'])
             ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+            ->paginate($perPage, ['*'], 'page', $page);
     }
 
     /**

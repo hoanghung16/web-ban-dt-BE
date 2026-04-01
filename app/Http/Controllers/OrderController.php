@@ -22,13 +22,14 @@ class OrderController extends Controller
     {
         $userId = $request->get('userid');
         $status = $request->get('status');
-        $perPage = min($request->get('per_page', 20), 100);
+        // Support both 'limit' and 'per_page' parameters
+        $perPage = min($request->get('limit') ?? $request->get('per_page', 100), 100);
         $page = $request->get('page', 1);
         
         if ($userId) {
-            $orders = $this->orderService->getByUserId($userId);
+            $orders = $this->orderService->getByUserId($userId, $page, $perPage);
         } elseif ($status) {
-            $orders = $this->orderService->getByStatus($status);
+            $orders = $this->orderService->getByStatus($status, $page, $perPage);
         } else {
             $orders = $this->orderService->getAllOrders($page, $perPage);
         }

@@ -12,7 +12,7 @@ trait ValidatesUserTrait
         return [
             'fullname' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
+            'password' => 'required|string|min:6|confirmed',
             'role' => 'nullable|string|in:admin,customer,user',
         ];
     }
@@ -24,7 +24,7 @@ trait ValidatesUserTrait
     {
         return [
             'fullname' => 'sometimes|string|max:255',
-            'password' => 'nullable|string|min:6',
+            'password' => 'nullable|string|min:6|confirmed',
             'role' => 'sometimes|string|in:admin,customer,user',
         ];
     }
@@ -41,6 +41,7 @@ trait ValidatesUserTrait
             'email.unique' => 'Email đã được đăng ký',
             'password.required' => 'Mật khẩu không được để trống',
             'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự',
+            'password.confirmed' => 'Xác nhận mật khẩu không khớp',
         ];
     }
 }
