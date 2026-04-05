@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class DatabaseSeeder extends Seeder
 {
@@ -231,7 +232,7 @@ class DatabaseSeeder extends Seeder
                 // SQLite (no action needed, uses ROWID)
             } catch (\Exception $e) {
                 // Log warning but don't stop seeding
-                \Log::warning("Failed to reset auto_increment for table {$table}: " . $e->getMessage());
+                Log::warning("Failed to reset auto_increment for table {$table}: " . $e->getMessage());
             }
         }
     }
