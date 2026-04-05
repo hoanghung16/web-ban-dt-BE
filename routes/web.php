@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Login route (named for compatibility with Laravel auth)
+Route::get('/login', function () {
+    return response()->json(['message' => 'Please use /api/auth/login'], 401);
+})->name('login');
+
 Route::get('/', function () {
     // Trả về danh sách user thay vì trang welcome của Laravel
     return \App\Models\User::all();

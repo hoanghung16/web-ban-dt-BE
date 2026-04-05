@@ -8,10 +8,19 @@ class AdminOnly
 {
     public function handle(Request $request, Closure $next)
     {
-        if ($request->user() && strtolower($request->user()->role) !== 'admin') {
+        // Check if user is authenticated
+        if (!$request->user()) {
+            return response()->json([
+                'message' => 'Unauthenticated',
+                'error' => 'Unauthorized'
+            ], 401);
+        }
+        
+        // Check if user is admin
+        if (strtolower($request->user()->role) !== 'admin') {
             return response()->json([
                 'message' => 'Bạn không có quyền truy cập tài nguyên này',
-                'error' => 'Unauthorized'
+                'error' => 'Forbidden'
             ], 403);
         }
 

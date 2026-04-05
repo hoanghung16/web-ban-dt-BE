@@ -1,6 +1,7 @@
 <?php
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AdminDashboardController;
 use App\Http\Controllers\{ProductController, CategoryController, UserController, 
                          InventoryController, OrderController, OrderItemController};
 
@@ -25,6 +26,9 @@ Route::middleware('auth:sanctum')->group(function () {
     
 // Admin-only endpoints grouping
     Route::middleware('admin')->group(function() {
+        // Admin Dashboard
+        Route::get('/admin/dashboard', [AdminDashboardController::class, 'index']);
+        
         // Product CRUD (except index and show, which are public)
         Route::apiResource('products', ProductController::class)->except(['show', 'index']);
         Route::post('products/upload-image', [ProductController::class, 'uploadImage']);
@@ -34,6 +38,9 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // User CRUD
         Route::apiResource('users', UserController::class);
+        
+        // User role update (promote/demote)
+        Route::put('/users/{id}/role', [UserController::class, 'updateRole']);
         
         // Inventory CRUD
         Route::apiResource('inventories', InventoryController::class);

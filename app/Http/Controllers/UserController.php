@@ -52,4 +52,23 @@ class UserController extends Controller
         $this->userService->delete($id);
         return response()->json(['message' => 'Deleted']);
     }
+
+    /**
+     * Update user role (promote/demote)
+     * PUT /api/admin/users/{id}/role
+     */
+    public function updateRole(Request $request, $id)
+    {
+        $request->validate([
+            'role' => 'required|string|in:admin,customer,user'
+        ]);
+        
+        $user = User::findOrFail($id);
+        $user->update(['role' => $request->role]);
+        
+        return response()->json([
+            'message' => 'Role updated successfully',
+            'data' => new UserResource($user)
+        ]);
+    }
 }
