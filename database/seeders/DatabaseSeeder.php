@@ -200,9 +200,19 @@ class DatabaseSeeder extends Seeder
         // Only reset tables with 'id' as primary key
         $tables = ['users', 'categories', 'products', 'orders', 'order_items'];
         
-        // Get actual database driver from connection, not config
-        // On Render, DATABASE_URL overrides DB_CONNECTION setting
-        $driverName = DB::connection()->getDriverName();
+        // Detect database driver from DATABASE_URL (Render) or config (local)
+        // DATABASE_URL on Render: postgresql://user:pass@host/db
+        // Fallback to config for local MySQL
+        $databaseUrl = env('DATABASE_URL', '');
+        
+        if (strpos($databaseUrl, 'postgresql') !== false) {
+            $driver = 'pgsql';
+        } elseif (strpos($databaseUrl, 'mysql') !== false) {
+            $driver = 'mysql';
+        } else {
+            // Fallback for local development
+            $driver = config('database.default', 'mysql');
+        }
         
         foreach ($tables as $table) {
             try {
@@ -210,19 +220,18 @@ class DatabaseSeeder extends Seeder
                 $nextId = $maxId + 1;
                 
                 // MySQL & MariaDB
-                if ($driverName === 'mysql') {
+                if ($driver === 'mysql') {
                     DB::statement("ALTER TABLE {$table} AUTO_INCREMENT = {$nextId}");
                 }
                 // PostgreSQL
-                elseif ($driverName === 'pgsql') {
+                elseif ($driver === 'pgsql') {
                     $sequence = "{$table}_id_seq";
                     DB::statement("ALTER SEQUENCE {$sequence} RESTART WITH {$nextId}");
                 }
                 // SQLite (no action needed, uses ROWID)
-                // SQLite handles auto-increment automatically
             } catch (\Exception $e) {
-                // Log error but don't stop seeding
-                \Log::warning("Failed to reset sequence for table {$table}: " . $e->getMessage());
+                // Log warning but don't stop seeding
+                \Log::warning("Failed to reset auto_increment for table {$table}: " . $e->getMessage());
             }
         }
     }
