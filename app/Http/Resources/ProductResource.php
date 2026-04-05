@@ -5,15 +5,15 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class ProductResource extends JsonResource
 {
     /**
-     * Get full image URL - only return Cloudinary URLs
+     * Get full image URL - only return Cloudinary URLs or placeholder
      * Local URLs are not persisted on Render (ephemeral filesystem)
-     * Seeded products will show placeholder, user-uploaded show image
+     * Seeded products will show placeholder image
      */
-    private function getFullImageUrl($imageUrl, $request = null)
+    private function getFullImageUrl($imageUrl)
     {
-        // If empty or null
+        // If empty or null - return placeholder
         if (empty($imageUrl)) {
-            return null;
+            return 'https://via.placeholder.com/400x300.png?text=No+Image';
         }
         
         // Already a full URL (Cloudinary or external) - return as-is
@@ -23,12 +23,12 @@ class ProductResource extends JsonResource
         
         // Local relative URL (/images/products/...) 
         // These don't exist on Render (ephemeral filesystem)
-        // Return null - frontend will show placeholder
+        // Return placeholder image
         if (strpos($imageUrl, '/') === 0) {
-            return null;
+            return 'https://via.placeholder.com/400x300.png?text=No+Image';
         }
         
-        return null;
+        return 'https://via.placeholder.com/400x300.png?text=No+Image';
     }
 
     public function toArray($request)
