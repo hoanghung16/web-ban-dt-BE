@@ -16,7 +16,8 @@ class Product extends Model
         'saleprice',
         'IsOnSale',
         'IsPublished',
-        'imageUrl'
+        'imageUrl',
+        'cloudinary_public_id'
     ];
 
     public function category()

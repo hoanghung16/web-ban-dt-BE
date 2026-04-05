@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Services\ProductService;
+use App\Services\CloudinaryService;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
@@ -10,10 +11,12 @@ use Illuminate\Http\Request;
 class ProductController extends Controller
 {
     protected ProductService $productService;
+    protected CloudinaryService $cloudinaryService;
 
-    public function __construct(ProductService $productService)
+    public function __construct(ProductService $productService, CloudinaryService $cloudinaryService)
     {
         $this->productService = $productService;
+        $this->cloudinaryService = $cloudinaryService;
     }
 
     // Frontend listing (public)
@@ -67,6 +70,13 @@ class ProductController extends Controller
     
     public function destroy($id)
     {
+        $product = Product::find($id);
+        
+        if ($product && env('UPLOAD_DRIVER', 'local') === 'cloudinary' && $product->cloudinary_public_id) {
+            // Delete from Cloudinary
+            $this->cloudinaryService->deleteFile($product->cloudinary_public_id);
+        }
+        
         $this->productService->delete($id);
         return response()->json(['message' => 'Sản phẩm đã xóa']);
     }
@@ -74,6 +84,7 @@ class ProductController extends Controller
     /**
      * Upload hình ảnh sản phẩm
      * POST /api/products/upload-image
+     * Support both local storage and Cloudinary based on UPLOAD_DRIVER env
      */
     public function uploadImage(Request $request)
     {
@@ -88,19 +99,37 @@ class ProductController extends Controller
 
         try {
             $file = $request->file('image');
-            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $uploadDriver = env('UPLOAD_DRIVER', 'local');
             
-            // Lưu vào public/images/products
-            $file->move(public_path('images/products'), $filename);
+            if ($uploadDriver === 'cloudinary') {
+                // Upload to Cloudinary
+                $result = $this->cloudinaryService->uploadFile($file, 'products');
 
-            // Trả về đường dẫn tương đối để lưu vào database
-            $imagePath = '/images/products/' . $filename;
+                if (!$result['success']) {
+                    return response()->json([
+                        'message' => 'Lỗi upload: ' . $result['error']
+                    ], 500);
+                }
 
-            return response()->json([
-                'message' => 'Upload thành công',
-                'imageUrl' => $imagePath,
-                'fullUrl' => url($imagePath)
-            ], 200);
+                return response()->json([
+                    'message' => 'Upload thành công',
+                    'imageUrl' => $result['url'],
+                    'public_id' => $result['public_id'],
+                    'fullUrl' => $result['url']
+                ], 200);
+            } else {
+                // Upload to local storage
+                $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('images/products'), $filename);
+                $imagePath = '/images/products/' . $filename;
+
+                return response()->json([
+                    'message' => 'Upload thành công',
+                    'imageUrl' => $imagePath,
+                    'public_id' => null,
+                    'fullUrl' => url($imagePath)
+                ], 200);
+            }
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Lỗi upload: ' . $e->getMessage()

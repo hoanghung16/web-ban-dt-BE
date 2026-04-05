@@ -16,6 +16,7 @@ class ProductResource extends JsonResource
             'IsOnSale' => (bool) $this->IsOnSale,
             'IsPublished' => (bool) $this->IsPublished,
             'imageUrl' => $this->imageUrl,
+            'cloudinary_public_id' => $this->cloudinary_public_id,
             'inventory' => new InventoryResource($this->whenLoaded('inventory')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
