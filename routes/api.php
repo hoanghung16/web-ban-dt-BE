@@ -3,7 +3,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AdminDashboardController;
 use App\Http\Controllers\{ProductController, CategoryController, UserController, 
-                         InventoryController, OrderController, OrderItemController};
+                         InventoryController, OrderController, OrderItemController, AdminSyncController};
 
 // PUBLIC endpoints (no auth required)
 Route::get('/products', [ProductController::class, 'getProducts']);
@@ -28,6 +28,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('admin')->group(function() {
         // Admin Dashboard
         Route::get('/admin/dashboard', [AdminDashboardController::class, 'index']);
+        
+        // Sync images (trigger artisan command)
+        Route::post('/admin/sync-images', [AdminSyncController::class, 'syncProductImages']);
         
         // Product CRUD (except index and show, which are public)
         Route::apiResource('products', ProductController::class)->except(['show', 'index']);
