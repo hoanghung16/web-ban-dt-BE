@@ -196,7 +196,8 @@ class DatabaseSeeder extends Seeder
      */
     private function resetAutoIncrement()
     {
-        $tables = ['users', 'categories', 'products', 'inventories', 'orders', 'order_items'];
+        // Only reset tables with 'id' as primary key
+        $tables = ['users', 'categories', 'products', 'orders', 'order_items'];
         $driver = config('database.default');
         
         foreach ($tables as $table) {
