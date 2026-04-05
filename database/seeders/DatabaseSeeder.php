@@ -197,16 +197,17 @@ class DatabaseSeeder extends Seeder
     private function resetAutoIncrement()
     {
         $tables = ['users', 'categories', 'products', 'inventories', 'orders', 'order_items'];
+        $driver = config('database.default');
         
         foreach ($tables as $table) {
             $maxId = DB::table($table)->max('id') ?? 0;
             
             // MySQL
-            if (DB::connection()->getDriverName() === 'mysql') {
+            if ($driver === 'mysql') {
                 DB::statement("ALTER TABLE {$table} AUTO_INCREMENT = " . ($maxId + 1));
             }
             // PostgreSQL
-            elseif (DB::connection()->getDriverName() === 'pgsql') {
+            elseif ($driver === 'pgsql') {
                 $sequence = "{$table}_id_seq";
                 DB::statement("ALTER SEQUENCE {$sequence} RESTART WITH " . ($maxId + 1));
             }
