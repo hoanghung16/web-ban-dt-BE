@@ -186,5 +186,32 @@ class DatabaseSeeder extends Seeder
             // Order 15: Tai Nghe Chui
             ['orderid' => 15, 'productid' => 20, 'quantity' => 1, 'unitprice' => 599000, 'created_at' => now()],
         ]);
+        // Reset auto_increment counters to avoid duplicate key errors
+        $this->resetAutoIncrement();
     }
+
+    /**
+     * Reset auto_increment sequences after seeding
+     * Prevents duplicate key errors when creating new records
+     */
+    private function resetAutoIncrement()
+    {
+        $tables = ['users', 'categories', 'products', 'inventories', 'orders', 'order_items'];
+        
+        foreach ($tables as $table) {
+            $maxId = DB::table($table)->max('id') ?? 0;
+            
+            // MySQL
+            if (DB::connection()->getDriverName() === 'mysql') {
+                DB::statement("ALTER TABLE {$table} AUTO_INCREMENT = " . ($maxId + 1));
+            }
+            
+            // PostgreSQL
+            elseif (DB::connection()->getDriverName() === 'pgsql') {
+                $sequence = "{$table}_id_seq";
+                DB::statement("ALTER SEQUENCE {$sequence} RESTART WITH " . ($maxId + 1));
+            }
+            
+            // SQLite (no action needed, uses ROWID)
+        }    }
 }
