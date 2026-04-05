@@ -193,26 +193,37 @@ class DatabaseSeeder extends Seeder
     /**
      * Reset auto_increment sequences after seeding
      * Prevents duplicate key errors when creating new records
+     * Works with MySQL, PostgreSQL, and SQLite
      */
     private function resetAutoIncrement()
     {
         // Only reset tables with 'id' as primary key
         $tables = ['users', 'categories', 'products', 'orders', 'order_items'];
-        $driver = config('database.default');
+        
+        // Get actual database driver from connection, not config
+        // On Render, DATABASE_URL overrides DB_CONNECTION setting
+        $driverName = DB::connection()->getDriverName();
         
         foreach ($tables as $table) {
-            $maxId = DB::table($table)->max('id') ?? 0;
-            
-            // MySQL
-            if ($driver === 'mysql') {
-                DB::statement("ALTER TABLE {$table} AUTO_INCREMENT = " . ($maxId + 1));
+            try {
+                $maxId = DB::table($table)->max('id') ?? 0;
+                $nextId = $maxId + 1;
+                
+                // MySQL & MariaDB
+                if ($driverName === 'mysql') {
+                    DB::statement("ALTER TABLE {$table} AUTO_INCREMENT = {$nextId}");
+                }
+                // PostgreSQL
+                elseif ($driverName === 'pgsql') {
+                    $sequence = "{$table}_id_seq";
+                    DB::statement("ALTER SEQUENCE {$sequence} RESTART WITH {$nextId}");
+                }
+                // SQLite (no action needed, uses ROWID)
+                // SQLite handles auto-increment automatically
+            } catch (\Exception $e) {
+                // Log error but don't stop seeding
+                \Log::warning("Failed to reset sequence for table {$table}: " . $e->getMessage());
             }
-            // PostgreSQL
-            elseif ($driver === 'pgsql') {
-                $sequence = "{$table}_id_seq";
-                DB::statement("ALTER SEQUENCE {$sequence} RESTART WITH " . ($maxId + 1));
-            }
-            // SQLite (no action needed, uses ROWID)
         }
     }
 }
