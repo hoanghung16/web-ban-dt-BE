@@ -213,5 +213,6 @@ class DatabaseSeeder extends Seeder
             }
             
             // SQLite (no action needed, uses ROWID)
-        }    }
+        }
+    }
 }
