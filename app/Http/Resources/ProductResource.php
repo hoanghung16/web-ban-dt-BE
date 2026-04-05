@@ -5,40 +5,26 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class ProductResource extends JsonResource
 {
     /**
-     * Get full image URL - handle both local and cloud URLs
+     * Get full image URL - convert relative URLs to absolute
      */
     private function getFullImageUrl($imageUrl)
     {
-        // If URL is empty or null
+        // If empty or null
         if (empty($imageUrl)) {
-            return $this->getPlaceholderImage();
+            return null;
         }
         
-        // Already a full URL (starts with http)
+        // Already a full URL
         if (strpos($imageUrl, 'http') === 0) {
             return $imageUrl;
         }
         
-        // Local URL (starts with /)
+        // Local relative URL - convert to full
         if (strpos($imageUrl, '/') === 0) {
-            // On production (Render), local URLs won't work - return placeholder
-            if (env('APP_ENV') === 'production') {
-                return $this->getPlaceholderImage();
-            }
-            // Local dev - return full URL
             return url($imageUrl);
         }
         
-        return $this->getPlaceholderImage();
-    }
-    
-    /**
-     * Get placeholder image for missing images
-     */
-    private function getPlaceholderImage()
-    {
-        // Use Cloudinary placeholder (works everywhere)
-        return 'https://res.cloudinary.com/demo/image/fetch/w_400,h_400,c_fill/https://via.placeholder.com/400x400?text=Product+Image';
+        return null;
     }
 
     public function toArray($request)
