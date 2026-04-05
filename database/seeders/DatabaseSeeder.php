@@ -205,13 +205,11 @@ class DatabaseSeeder extends Seeder
             if (DB::connection()->getDriverName() === 'mysql') {
                 DB::statement("ALTER TABLE {$table} AUTO_INCREMENT = " . ($maxId + 1));
             }
-            
             // PostgreSQL
             elseif (DB::connection()->getDriverName() === 'pgsql') {
                 $sequence = "{$table}_id_seq";
                 DB::statement("ALTER SEQUENCE {$sequence} RESTART WITH " . ($maxId + 1));
             }
-            
             // SQLite (no action needed, uses ROWID)
         }
     }
