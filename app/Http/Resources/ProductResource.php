@@ -5,8 +5,9 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class ProductResource extends JsonResource
 {
     /**
-     * Get full image URL - convert relative URLs to absolute
-     * Handles both Cloudinary URLs and local storage URLs
+     * Get full image URL - only return Cloudinary URLs
+     * Local URLs are not persisted on Render (ephemeral filesystem)
+     * Seeded products will show placeholder, user-uploaded show image
      */
     private function getFullImageUrl($imageUrl, $request = null)
     {
@@ -15,17 +16,16 @@ class ProductResource extends JsonResource
             return null;
         }
         
-        // Already a full URL (Cloudinary or external)
+        // Already a full URL (Cloudinary or external) - return as-is
         if (strpos($imageUrl, 'http') === 0) {
             return $imageUrl;
         }
         
-        // Local relative URL - convert to full using dynamic base URL
+        // Local relative URL (/images/products/...) 
+        // These don't exist on Render (ephemeral filesystem)
+        // Return null - frontend will show placeholder
         if (strpos($imageUrl, '/') === 0) {
-            // On Render, APP_URL might be localhost
-            // Instead, use request's current scheme and host
-            $baseUrl = $request ? $request->getSchemeAndHttpHost() : url('/');
-            return $baseUrl . $imageUrl;
+            return null;
         }
         
         return null;
@@ -42,7 +42,7 @@ class ProductResource extends JsonResource
             'saleprice' => $this->saleprice ? (float) $this->saleprice : null,
             'IsOnSale' => (bool) $this->IsOnSale,
             'IsPublished' => (bool) $this->IsPublished,
-            'imageUrl' => $this->getFullImageUrl($this->imageUrl, $request),
+            'imageUrl' => $this->getFullImageUrl($this->imageUrl),
             'cloudinary_public_id' => $this->cloudinary_public_id,
             'inventory' => new InventoryResource($this->whenLoaded('inventory')),
             'created_at' => $this->created_at,
