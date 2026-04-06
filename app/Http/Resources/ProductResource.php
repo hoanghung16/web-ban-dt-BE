@@ -15,20 +15,22 @@ class ProductResource extends JsonResource
             return 'https://via.placeholder.com/400x300.png?text=No+Image';
         }
 
+        // If it's already a full URL (http/https), return it as-is
+        // This handles both:
+        // - Cloudinary URLs (https://res.cloudinary.com/...)
+        // - Direct URLs (http://...)
         if (strpos($imageUrl, 'http') === 0) {
             return $imageUrl;
         }
 
+        // For relative paths, construct full URL based on environment
         $uploadDriver = env('UPLOAD_DRIVER', 'local');
-
-        if ($uploadDriver === 'cloudinary') {
-            return 'https://via.placeholder.com/400x300.png?text=No+Image';
-        }
 
         if (strpos($imageUrl, '/') === 0) {
             return url($imageUrl);
         }
 
+        // Default: prepend /images/products/ for local storage
         return url('/images/products/' . $imageUrl);
     }
 
